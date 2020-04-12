@@ -1,0 +1,36 @@
+{
+  "name": "app-docker-typescript-base",
+  "version": "0.0.1",
+  "authors": "Corey Cosman",
+  "description": "run typescript code in docker containers in prod, dev, test, and debug environments",
+  "main": "lib/index.js",
+  "scripts": {
+    "start": "export NODE_ENV=prod && cp -f ./tsconfig:prod.json ./tsconfig.json && tsc && node lib/index.js",
+    "start:dev": "export NODE_ENV=dev && cp -f ./tsconfig:dev.json ./tsconfig.json && nodemon -w src/index.ts -e .ts -x node -r ts-node/register src/index.ts",
+    "test": "export NODE_ENV=test && cp -f ./tsconfig:dev.json ./tsconfig.json && jest --detectOpenHandles --colors --watch",
+    "test:debug": "export NODE_ENV=test-debug && cp -f ./tsconfig:dev.json ./tsconfig.json && node --inspect=0.0.0.0:4242 node_modules/.bin/jest --detectOpenHandles --colors --runInBand --watch",
+    "test:debug-scoped": "export NODE_ENV=test-debug-scoped && cp -f ./tsconfig:dev.json ./tsconfig.json && node --inspect=0.0.0.0:4242 node_modules/.bin/jest --detectOpenHandles --colors --watch --runInBand --testNamePattern",
+    "debug": "export NODE_ENV=debug && cp -f ./tsconfig:dev.json ./tsconfig.json && nodemon -w src/index.ts -e .ts -x node --inspect=0.0.0.0:4242 -r ts-node/register src/index.ts",
+    "docker:prod": "docker-compose -f './docker-compose.yml' up --build --remove-orphans",
+    "docker:dev": "docker-compose -f './docker-compose:dev.yml' up --build --remove-orphans",
+    "docker:test": "docker-compose -f './docker-compose:test.yml' up --build --remove-orphans",
+    "docker:test-debug": "docker-compose -f './docker-compose:test-debug.yml' up --build --remove-orphans",
+    "docker:debug": "docker-compose -f './docker-compose:debug.yml' up --build --remove-orphans"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/jest": "^25.2.1",
+    "@types/node": "^10.1.2",
+    "jest": "^25.2.7",
+    "ts-jest": "^25.3.1",
+    "ts-node": "^8.8.2",
+    "typescript": "^2.8.3"
+  },
+  "engines": {
+    "node": "12.16.1"
+  },
+  "engineStrict": true,
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/@coreycosman"
+  }
+}

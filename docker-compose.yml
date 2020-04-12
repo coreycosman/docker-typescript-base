@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  prod-environment:
+    restart: always
+    build:
+      dockerfile: Dockerfile
+      context: .
+    ports:
+      []
+      # - configure whatever ports you need to run your service in production
+    volumes:
+      - .:/app
+      - /app/node_modules
