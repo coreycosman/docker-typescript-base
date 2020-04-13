@@ -42,14 +42,13 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged"
+      "pre-commit": "tsc --noEmit && lint-staged"
     }
   },
   "lint-staged": {
     "**/*.{ts,js,md}": [
       "prettier --write",
-      "eslint --fix",
-      "git add"
+      "eslint"
     ]
   }
 }
