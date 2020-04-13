@@ -1,5 +1,5 @@
 {
-  "name": "app-docker-typescript-base",
+  "name": "docker-typescript-base",
   "version": "0.0.1",
   "authors": "Corey Cosman",
   "description": "run typescript code in docker containers in prod, dev, test, and debug environments",
