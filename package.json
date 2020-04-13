@@ -17,9 +17,7 @@
     "docker:test-debug": "docker-compose -f './docker-compose:test-debug.yml' up --build --remove-orphans",
     "docker:debug": "docker-compose -f './docker-compose:debug.yml' up --build --remove-orphans"
   },
-  "dependencies": {
-    "rimraf": "^3.0.2"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/jest": "^25.2.1",
     "@types/node": "^10.1.2",
@@ -29,6 +27,7 @@
     "husky": "^4.2.5",
     "jest": "^25.2.7",
     "lint-staged": "^10.1.3",
+    "rimraf": "^3.0.2",
     "ts-jest": "^25.3.1",
     "ts-node": "^8.8.2",
     "typescript": "^2.8.3"
