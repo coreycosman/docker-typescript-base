@@ -5,7 +5,7 @@
   "description": "run typescript code in docker containers in prod, dev, test, and debug environments",
   "main": "lib/index.js",
   "scripts": {
-    "start": "export NODE_ENV=prod && cp -f ./tsconfig:prod.json ./tsconfig.json && tsc && node --enable-source-maps lib/index.js",
+    "start": "export NODE_ENV=prod && cp -f ./tsconfig:prod.json ./tsconfig.json && rimraf lib/ &&tsc && node --enable-source-maps lib/index.js",
     "start:dev": "export NODE_ENV=dev && cp -f ./tsconfig:dev.json ./tsconfig.json && nodemon -w src/index.ts -e .ts -x node --enable-source-maps -r ts-node/register src/index.ts",
     "test": "export NODE_ENV=test && cp -f ./tsconfig:dev.json ./tsconfig.json && jest  --watchAll --detectOpenHandles --colors",
     "test:debug": "export NODE_ENV=test-debug && cp -f ./tsconfig:dev.json ./tsconfig.json && node --inspect=0.0.0.0:4242 node_modules/.bin/jest --watchAll --detectOpenHandles --colors --runInBand",
@@ -17,11 +17,18 @@
     "docker:test-debug": "docker-compose -f './docker-compose:test-debug.yml' up --build --remove-orphans",
     "docker:debug": "docker-compose -f './docker-compose:debug.yml' up --build --remove-orphans"
   },
-  "dependencies": {},
+  "dependencies": {
+    "rimraf": "^3.0.2"
+  },
   "devDependencies": {
     "@types/jest": "^25.2.1",
     "@types/node": "^10.1.2",
+    "@typescript-eslint/eslint-plugin": "^2.27.0",
+    "@typescript-eslint/parser": "^2.27.0",
+    "eslint": "^6.8.0",
+    "husky": "^4.2.5",
     "jest": "^25.2.7",
+    "lint-staged": "^10.1.3",
     "ts-jest": "^25.3.1",
     "ts-node": "^8.8.2",
     "typescript": "^2.8.3"
@@ -32,5 +39,17 @@
   "engineStrict": true,
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/@coreycosman"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "**/*.{ts,js,md}": [
+      "prettier --write",
+      "eslint --fix",
+      "git add"
+    ]
   }
 }
