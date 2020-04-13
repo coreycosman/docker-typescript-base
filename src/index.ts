@@ -1,2 +1,3 @@
+/* eslint-disable */
 console.log('hello');
-debugger
+debugger;
