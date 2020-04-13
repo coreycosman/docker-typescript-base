@@ -1,0 +1,70 @@
+#!/usr/bin/env node
+/*eslint-disable */
+const shell = require('shelljs');
+const program = require('commander');
+const co = require('co');
+const prompt = require('co-prompt');
+const chalk = require('chalk');
+const figlet = require('figlet');
+const test = 'hello';
+
+const letterColors = ['#48a7b5', '#FF9186', '#7bdcea', '#0c5751', '#f28b54'];
+function getColor() {
+  return letterColors[Math.floor(Math.random * letterColors.length)];
+}
+debugger;
+console.log(
+  chalk.hex(`${getColor()}`)(figlet.textSync('Welcome')),
+  chalk.hex('#FF9186')(figlet.textSync('to')),
+  chalk.hex('#7bdcea')(figlet.textSync('the')),
+  chalk.hex('#0c5751')(figlet.textSync('docker-typescript-base')),
+  chalk.hex('#f28b54')(figlet.textSync('cli tool')),
+);
+
+shell.echo('Please note that this tool is currently only compatible with UNIX');
+shell.echo(
+  'This tool will determine where to save your new customized package in the $HOME directory',
+);
+shell.echo('Please decide if you would like to store the contents of this package either:');
+shell.echo('in an existing directory in $HOME eg. $HOME/<some-project-root-directory>');
+shell.echo('or to $HOME/<a-new-file-path-directory-to-be-named-by-you>');
+program
+  .option('-u, --username <username>', '1')
+  .option('-p, --password <password>', '2')
+  .action(function (file) {
+    co(function* () {
+      const username = yield prompt('Option 1: : ');
+      const password = yield prompt.password('password: ');
+      console.log(username);
+      // username, password, file);
+    });
+  })
+  .parse(process.argv);
+// const [, , ...args] = process.argv;
+
+// const getNodeVersion = 'nodeVersion(){node -v}';
+
+// shell.exec(
+//   `cd && NODE_VERSION=$(node -v) && sudo cp -r ~/.nvm/versions/node/"$NODE_VERSION"/lib/node_modules/docker-typescript-baseq/ ${args[0]}/test`,
+// );
+// if (args[0] === undefined && args[1] === undefined) {
+//   shell.echo('docker-ts requires 1..2 arguments');
+//   shell.echo('argument 1:');
+//   shell.echo(
+//     'option i) can be an existing folder name in the unix $HOME directory (this could be a location where your services for a specific project live',
+//   );
+//   shell.echo(
+//     'option 2) if selected, a 2nd argument should not be used; this option is the name of your new directory containing the docker-typescript-base in $HOME',
+//   );
+//   shell.echo('argument2:');
+//   shell.echo(
+//     'to be used only if argument 1 is an existing directory in $HOME; this argument is the name of your new directory containing the docker-typescript-base in $HOME/<argument1>',
+//   );
+// }
+
+// shell.exec(
+//   `cd && NODE_VERSION=$(node -v) && cp -r ~/.nvm/versions/node/"$NODE_VERSION"/lib/node_modules/docker-typescript-baseq/ ${args[0]}/${args[1]} && cd ${args[0]}/${args[1]}`,
+// );
+// shell.exec(`cd && cd ${args[0]} && mkdir ${args[1]} && cd ${args[1]} && cp -r`)
+
+// shell.exec('echo hello test');
