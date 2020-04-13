@@ -8,7 +8,7 @@ module.exports = {
   "parserOptions": {
 		"ecmaVersion": 2017
 	},
-	"extends": "plugin:@typescript-eslint:recommended",
+	"extends": "plugin:@typescript-eslint/recommended",
 	"rules": {
 		"indent": [
 			"error",
