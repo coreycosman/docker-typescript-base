@@ -6,12 +6,15 @@ const cliPrompt = require('co-prompt');
 const figlet = require('figlet');
 const program = require('commander');
 const chalk = require('chalk');
+const fs = require('fs');
 
-import { ColorTextInput } from './interface';
+import { ColorTextInput, PrintMessageOptions, Tree } from './interface';
 import { ColorPalette } from './colors';
 
 const colorCodes = Object.values(ColorPalette);
-const welcomeMessage = ['Welcome!', 'to', 'the', 'docker-typescript-base', 'cli tool'];
+const welcomeMessage = 'Welcome!, to, the, docker-typescript-base, cli tool';
+const conclusionMessage =
+  'Your package is now ready to use!, NPM modules are installed, you can now run any of the scripts to see them in action, your entry point is src/index.ts, you can start building from there, and the file path to your new package is: ';
 const instructions = {
   compatability:
     'Please note that this tool is currently only compatible with UNIX machines that are running nvm',
@@ -22,40 +25,159 @@ const instructions = {
   option2: '2. as a new directory in $HOME/<a-new-file-path-directory-to-be-named-by-you>',
 };
 const options = {
-  initialPrompt: 'Please ENTER either (1) or (2) from the above options:  ',
-  existingDirectoryOption:
-    'Specify path to your existing directory (in $HOME) eg. your-directory-name:  ',
+  initialFlag: 'Please ENTER either (1) or (2) from the above options:  ',
+  existingDirectoryOption: `Specify path to your existing directory eg. your-directory-name:                                    `,
   newPathName: 'Name your new package eg. your-new-package-name  ',
   lineBreak: '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++',
 };
 
-printWelcome();
-printInstructions();
-
 program
-  .action(function (file: any) {
-    co(function* () {
-      const selection1 = yield cliPrompt(colorText({ text: options.initialPrompt, style: 'bold' }));
-      if (typeof selection1 !== 'string' && selection1 !== '1' && selection1 !== '2')
-        return console.log('please enter either 1 or 2');
-      if (selection1 === '1') {
-        const rootDir = yield cliPrompt(
-          colorText({ text: options.existingDirectoryOption, style: 'bold' }),
-        );
-        const newPackageName = yield cliPrompt(
-          colorText({ text: options.newPathName, style: 'bold' }),
-        );
-        console.log(options.lineBreak);
-        shell.exec(
-          `cd && NODE_VERSION=$(node -v) && cd $HOME/${rootDir} && mkdir ${newPackageName} && cp -r ~/.nvm/versions/node/"$NODE_VERSION"/lib/node_modules/docker-typescript-baseq/ $HOME/${rootDir}/${newPackageName} && cd ${newPackageName} && echo ${printConclusion()} && pwd && echo Happy Coding!`,
-        );
-        shell.exit();
-      }
-      console.log('sup', selection1, file);
-    });
+  .action(function () {
+    co(printDialog());
   })
   .parse(process.argv);
+// program
+//   .action(function (file: any) {
+//     co(function* () {
+//       let selection1 = yield cliPrompt(colorText({ text: options.initialPrompt, style: 'bold' }));
+//       if (typeof selection1 !== 'string') return console.log('please enter a string');
+//       // @ts-ignore
+//       if (selection1 !== '1' && selection1 !== '2') {
+//         // return console.log('please enter either 1 or 2');
+//         selection1 = yield cliPrompt(colorText({ text: options.initialPrompt, style: 'bold' }));
+//       }
+//       if (selection1 === '1') {
+//         const rootDir = yield cliPrompt(
+//           colorText({ text: options.existingDirectoryOption, style: 'bold' }),
+//         );
+//         const newPackageName = yield cliPrompt(
+//           colorText({ text: options.newPathName, style: 'bold' }),
+//         );
+//         console.log(options.lineBreak);
+//         shell.exec(
+//           `cd && NODE_VERSION=$(node -v) && cd $HOME/${rootDir} && mkdir ${newPackageName} && cp -r ~/.nvm/versions/node/"$NODE_VERSION"/lib/node_modules/docker-typescript-baseq/ $HOME/${rootDir}/${newPackageName} && cd ${newPackageName} && echo ${printConclusion()} && pwd && echo Happy Coding!`,
+//         );
+//         shell.exit();
+//       }
+//       console.log('sup', selection1, file);
+//     });
+//   })
+//   .parse(process.argv);
 
+// printing functions
+function* printDialog() {
+  function testFunc(word: any) {
+    return word;
+  }
+
+  debugger;
+  printMessage({ message: welcomeMessage, styleFunction: testFunc(() => 'sup') });
+
+  printWelcome(['hello', 'sup']);
+  printInstructions();
+  // @ts-ignore
+  const tree: Tree = {
+    userDir: process.env['HOME'],
+    rootDir: '',
+    newDir: '',
+  };
+
+  let isValid: boolean = false;
+  let initialFlag;
+
+  while (!isValid) {
+    initialFlag = yield cliPrompt(colorText({ text: options.initialFlag, style: 'bold' }));
+    if (initialFlag === '1' || initialFlag === '2') isValid = true;
+  }
+  if (initialFlag === '1') {
+    // get existing root dir name
+    isValid = false;
+    while (!isValid) {
+      tree.rootDir = yield cliPrompt(
+        colorText({ text: options.existingDirectoryOption, style: 'bold' }),
+      );
+
+      const rootDirExists: boolean = fs.existsSync(`${tree.userDir}/${tree.rootDir}`);
+      if (!rootDirExists) {
+        console.log(
+          colorText({
+            text: `THAT DIRECTORY DOES NOT EXIST IN $HOME (${tree.userDir})!`,
+            style: 'error',
+          }),
+        );
+      } else {
+        isValid = true;
+      }
+    }
+
+    // get new package name
+    isValid = false;
+    while (!isValid) {
+      tree.newDir = yield cliPrompt(colorText({ text: options.newPathName, style: 'bold' }));
+
+      const packageNameExists: boolean = fs.existsSync(
+        `${tree.userDir}/${tree.rootDir}/${tree.newDir}`,
+      );
+      if (packageNameExists) {
+        console.log(
+          colorText({
+            text: `THAT DIRECTORY ALREADY EXISTS IN ${tree.userDir}/${tree.rootDir}!`,
+            style: 'error',
+          }),
+        );
+        // }
+      } else {
+        isValid = true;
+      }
+    }
+    console.log('sup');
+    console.log(options.lineBreak);
+
+    //  prettier-ignore
+    (async function createNewDir() {
+      return shell.exec(
+        `cd && NODE_VERSION=$(node -v) && cd ${tree.userDir}/${tree.rootDir} && mkdir ${tree.userDir}/${tree.rootDir}/${tree.newDir} && cp -r ~/.nvm/versions/node/"$NODE_VERSION"/lib/node_modules/docker-typescript-base/ ${tree.userDir}/${tree.rootDir}/${tree.newDir} && cd ${tree.userDir}/${tree.rootDir}/${tree.newDir}`,
+      );
+    })();
+    shell.echo(printConclusion());
+    // shell.echo(`${tree.userDir}/${tree.rootDir}/${tree.newDir}`);
+    shell.echo('Happy Coding!');
+    shell.exit();
+  }
+}
+
+function printMessage(options: PrintMessageOptions): Array<void> {
+  debugger;
+  if (options && options.message) {
+    return options.message.split(',').map((word: string) => {
+      debugger;
+      if (options.styleFunction) console.log(options.styleFunction({ text: word }));
+    });
+  }
+  return [console.log('')];
+  debugger;
+}
+function printWelcome(welcomeMessage: Array<string>): Array<void> {
+  return welcomeMessage.map((word) => {
+    return console.log(styleText(word));
+  });
+}
+// @ts-ignore
+function printConclusion(): Array<void> {
+  return conclusionMessage.split(',').map((word: string) => {
+    console.log(colorText({ text: word }));
+  });
+}
+
+function printInstructions(): Array<string> {
+  return Object.values(instructions).map((instruction) => {
+    if (instruction === instructions.prompt)
+      return shell.echo(colorText({ text: instruction, style: 'bold' })) + lineBreak(2);
+    return shell.echo(colorText({ text: instruction }));
+  });
+}
+
+// style functions
 function styleText(word: string): string {
   if (word === 'Welcome!') {
     return chalk.bold.hex(colorCodes[Math.floor(Math.random() * colorCodes.length)])(
@@ -74,33 +196,13 @@ function styleText(word: string): string {
 }
 
 function colorText(options: ColorTextInput): string {
-  if (options.style === 'bold') {
+  if (options.style === 'bold')
+    return chalk.bold.hex(colorCodes[Math.floor(Math.random() * colorCodes.length)])(options.text);
+  if (options.style === 'error') {
+    lineBreak(10);
     return chalk.bold.hex(colorCodes[Math.floor(Math.random() * colorCodes.length)])(options.text);
   }
   return chalk.hex(colorCodes[Math.floor(Math.random() * colorCodes.length)])(options.text);
-}
-
-function printWelcome(): Array<void> {
-  return welcomeMessage.map((word) => {
-    return console.log(styleText(word));
-  });
-}
-
-function printConclusion(): Array<void> {
-  const conclusion =
-    'Your package is now ready to use!, NPM modules are installed, you can now run any of the scripts to see them in action, your entry point is src/index.ts, you can start building from there, and the file path to your new package is: ';
-
-  return conclusion.split(',').map((word) => {
-    console.log(colorText({ text: word }));
-  });
-}
-
-function printInstructions(): Array<string> {
-  return Object.values(instructions).map((instruction) => {
-    if (instruction === instructions.prompt)
-      return shell.echo(colorText({ text: instruction, style: 'bold' })) + lineBreak(2);
-    return shell.echo(colorText({ text: instruction }));
-  });
 }
 
 function lineBreak(amount: number): null {
@@ -110,7 +212,6 @@ function lineBreak(amount: number): null {
   }
   return null;
 }
-
 // ___________________________________________________________________
 // const [, , ...args] = process.argv;
 
