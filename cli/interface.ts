@@ -1,8 +1,7 @@
-type TestFunction = (word: ColorTextInput | string) => string;
-// type StyleFunction = (word: string | ColorTextInput) => string;
 export interface PrintMessageOptions {
-  message?: string;
-  styleFunction?: TestFunction;
+  message: string;
+  type: string;
+  params?: Tree;
 }
 export interface ColorTextInput {
   text?: string;

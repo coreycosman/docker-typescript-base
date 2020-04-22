@@ -7,14 +7,16 @@ const figlet = require('figlet');
 const program = require('commander');
 const chalk = require('chalk');
 const fs = require('fs');
+const ora = require('ora');
 
+// @ts-ignore
 import { ColorTextInput, PrintMessageOptions, Tree } from './interface';
 import { ColorPalette } from './colors';
 
 const colorCodes = Object.values(ColorPalette);
 const welcomeMessage = 'Welcome!, to, the, docker-typescript-base, cli tool';
 const conclusionMessage =
-  'Your package is now ready to use!, NPM modules are installed, you can now run any of the scripts to see them in action, your entry point is src/index.ts, you can start building from there, and the file path to your new package is: ';
+  'Your package is now ready to use!, NPM modules are installed, you can now run any of the scripts in package.json to see them in action, your entry point is src/index.ts, you can start building from there, and the file path to your new package is: ';
 const instructions = {
   compatability:
     'Please note that this tool is currently only compatible with UNIX machines that are running nvm',
@@ -25,8 +27,8 @@ const instructions = {
   option2: '2. as a new directory in $HOME/<a-new-file-path-directory-to-be-named-by-you>',
 };
 const options = {
-  initialFlag: 'Please ENTER either (1) or (2) from the above options:  ',
-  existingDirectoryOption: `Specify path to your existing directory eg. your-directory-name:                                    `,
+  initialFlagPrompt: 'Please ENTER either (1) or (2) from the above options:  ',
+  existingDirectoryOption: `Specify path to your existing directory eg. your-directory-name:  `,
   newPathName: 'Name your new package eg. your-new-package-name  ',
   lineBreak: '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++',
 };
@@ -66,16 +68,9 @@ program
 
 // printing functions
 function* printDialog() {
-  function testFunc(word: any) {
-    return word;
-  }
-
-  debugger;
-  printMessage({ message: welcomeMessage, styleFunction: testFunc(() => 'sup') });
-
-  printWelcome(['hello', 'sup']);
+  printMessage({ message: welcomeMessage, type: 'welcome' });
   printInstructions();
-  // @ts-ignore
+
   const tree: Tree = {
     userDir: process.env['HOME'],
     rootDir: '',
@@ -86,7 +81,7 @@ function* printDialog() {
   let initialFlag;
 
   while (!isValid) {
-    initialFlag = yield cliPrompt(colorText({ text: options.initialFlag, style: 'bold' }));
+    initialFlag = yield cliPrompt(colorText({ text: options.initialFlagPrompt, style: 'bold' }));
     if (initialFlag === '1' || initialFlag === '2') isValid = true;
   }
   if (initialFlag === '1') {
@@ -133,39 +128,40 @@ function* printDialog() {
     console.log('sup');
     console.log(options.lineBreak);
 
-    //  prettier-ignore
+    // TODO: typecheck and try to get working with Promise.resolve()
     (async function createNewDir() {
-      return shell.exec(
-        `cd && NODE_VERSION=$(node -v) && cd ${tree.userDir}/${tree.rootDir} && mkdir ${tree.userDir}/${tree.rootDir}/${tree.newDir} && cp -r ~/.nvm/versions/node/"$NODE_VERSION"/lib/node_modules/docker-typescript-base/ ${tree.userDir}/${tree.rootDir}/${tree.newDir} && cd ${tree.userDir}/${tree.rootDir}/${tree.newDir}`,
-      );
+      return new Promise((resolve) => {
+        const childProcess = shell.exec(
+          `cd && NODE_VERSION=$(node -v) && cd ${tree.userDir}/${tree.rootDir} && mkdir ${tree.userDir}/${tree.rootDir}/${tree.newDir} && cp -r ~/.nvm/versions/node/"$NODE_VERSION"/lib/node_modules/docker-typescript-base/ ${tree.userDir}/${tree.rootDir}/${tree.newDir} && cd ${tree.userDir}/${tree.rootDir}/${tree.newDir} && cp -r ./cli/new-package.json ./package.json && rm -rf ./cli node_modules package-lock.json && npm i`,
+          { async: true },
+        );
+        const work = ora(console.log('working...')).start();
+        childProcess.stdout.on('data', () => {
+          work.stopAndPersist({
+            symbol: '🍕',
+            text: 'done',
+          });
+          shell.echo(
+            `${printMessage({ message: conclusionMessage, type: 'regular', params: tree })}`,
+          );
+          shell.echo(`${tree.userDir}/${tree.rootDir}/${tree.newDir}`);
+          // TODO: fix smile emoji size
+          shell.echo('Happy Coding! 😃');
+          shell.exit();
+          resolve();
+        });
+      });
     })();
-    shell.echo(printConclusion());
-    // shell.echo(`${tree.userDir}/${tree.rootDir}/${tree.newDir}`);
-    shell.echo('Happy Coding!');
-    shell.exit();
   }
 }
-
 function printMessage(options: PrintMessageOptions): Array<void> {
-  debugger;
-  if (options && options.message) {
-    return options.message.split(',').map((word: string) => {
-      debugger;
-      if (options.styleFunction) console.log(options.styleFunction({ text: word }));
-    });
-  }
-  return [console.log('')];
-  debugger;
-}
-function printWelcome(welcomeMessage: Array<string>): Array<void> {
-  return welcomeMessage.map((word) => {
-    return console.log(styleText(word));
-  });
-}
-// @ts-ignore
-function printConclusion(): Array<void> {
-  return conclusionMessage.split(',').map((word: string) => {
-    console.log(colorText({ text: word }));
+  return options.message.split(',').map((word: string) => {
+    if (options.type === 'welcome') {
+      console.log(styleText(word));
+    }
+    if (options.type === 'regular') {
+      console.log(colorText({ text: word }));
+    }
   });
 }
 
